@@ -6,7 +6,8 @@ module.exports.addProduct = async (req,res,next)=>{
         name,
         price,
         description,
-        imageUrl
+        imageUrl,
+        category
     } = req.body;
 
     if(!name || !price)
@@ -22,9 +23,9 @@ module.exports.addProduct = async (req,res,next)=>{
             price,
             description:description||"",
             imageUrl: imageUrl||"",
+            category:category,
             rating:0,
-            // adminId:req.user._id
-            adminId:"6a4c2d7bee4b91e754a96e65"
+            adminId:req.user._id
         })
     
         res.status(200).json({
@@ -65,7 +66,7 @@ module.exports.deleteProduct = async (req,res,next) => {
 }
 
 module.exports.updateProduct = async (req,res,next) => {
-    const {name,price,description,imageUrl,id} = req.body;
+    const {name,price,description,imageUrl,category,id} = req.body;
     if(!id){
         return res.status(400).json({
             message:"Id is missing to update an item"
@@ -80,6 +81,7 @@ module.exports.updateProduct = async (req,res,next) => {
             product.price = price || product.price;
             product.description = description || product.description;
             product.imageUrl = imageUrl || product.imageUrl;
+            product.category = category || product.category;
     
             await product.save();
     
@@ -94,75 +96,77 @@ module.exports.updateProduct = async (req,res,next) => {
         }
 }
 
-// module.exports.getUploadedProducts = async (req,res,next) => {
-//     try {
-//         console.log(req.user);
-//         let products = await productsModel.find({
-//             adminId:req.user._id
-//         });
+module.exports.getUploadedProducts = async (req,res,next) => {
+    try {
+        console.log(req.user);
+        let products = await productsModel.find({
+            adminId: req.user._id
+        });
+        
+        res.status(200).json({
+            products
+        })
 
-//         res.status(200).json({
-//             products
-//         })
-//     } catch (error) {
-//         return res.status(500).json({
-//             message:"Unable to fetch product right now",
-//             error
-//         })
-//     }
-// }
+    } catch (error) {
+        res.status(500).json({
+            message:"Unable to fetch product right now",
+            error
+        })
+    }
+}
 
-// module.exports.getProduct = async (req,res,next) => {
-//     const {id} = req.params;
-//     try {
-//         let product = await productsModel.findOne({
-//             _id:id,
-//             adminId:req.user._id
-//         })
+module.exports.getProduct = async (req,res,next) => {
+    const {id} = req.params;
+    try {
+         let product = await productsModel.findOne({
+            _id:id,
+            adminId: req.user._id
+         })
 
-//         if(!product)
-//         {
-//             return res.status(400).json({
-//                 message:"Product doesn't exist"
-//             })
-//         }
-//         return res.status(200).json({
-//             product
-//         })
-//     } catch (error) {
-//         return res.status(500).json({
-//             message:"Unable to fetch product right now",
-//             error
-//         })
-//     }
-// }
+         if(!product){
+            return res.status(400).json({
+                message:"Product doesn't exist"
+            })
+         }
 
-// module.exports.addBatchData = async (req,res,next) => {
-//     let seedData = seedProducts;
-//     seedData = seedData.map(item => {
-//         return {
-//             ...item,
-//             adminId:req.user._id
-//         }
-//     });
+         res.status(200).json({
+            product
+         })
+    } catch (error) {
+        res.status(500).json({
+            message:"Unable to fetch product right now",
+            error
+        })
+    }
+}
 
-//     if(seedData.length == 0){
-//         return res.status(400).json({
-//             message:"add data to seed"
-//         })
-//     } 
+module.exports.addBatchData = async (req,res,next) => {
+    let seedData = seedProducts;
+    seedData = seedData.map(item => {
+        return {
+            ...item,
+            adminId:req.user._id
+        }
+    });
 
-//     try {
-//         let allProducts = await productsModel.insertMany(seedData);
+    if(seedData.length == 0) {
+        return res.status(400).json({
+            message:"add data to seed"
+        })
+    }
 
-//         return res.status(200).json({
-//             message:"Seed Products added successfully",
-//             products: allProducts
-//         })
-//     } catch (error) {
-//         return res.status(500).status({
-//             message:error.message,
-//             error
-//         })
-//     }
-// }
+    try{
+        let allProducts = await productsModel.insertMany(seedData)
+
+        res.status(200).json({
+            message:"Seed Products added successfully",
+            products: allProducts
+        })
+    } catch(error) {
+        return res.status(500).json({
+            message:error.message,
+            error
+        })
+    }
+
+}
