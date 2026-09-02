@@ -3,7 +3,10 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const mongoose = require('mongoose');
+const cors = require('cors');
 const PORT = 5555;
+
+app.use(cors());
 
 const userRoutes = require('./routes/users.routes');
 const adminRoutes = require('./routes/admin.routes');
@@ -20,6 +23,9 @@ app.use('/users', userRoutes);
 app.use('/app', verifyTokenAndAuthenticateUser, appRoutes);
 app.use('/admin', isLoggedInAsAdmin, adminRoutes);
 
+// app.get('/ping', (req, res) => {
+//     res.json({ message: "pong from backend" });
+// });
 
 
 mongoose.connect('mongodb://localhost:27017/ecommerce_project')
