@@ -1,5 +1,5 @@
 import React, {useEffect,useState} from 'react';
-import styles from "./Cart.module.css";
+import styles from "./cart.module.css";
 import api from "../api";
 
 const Cart = () => {
